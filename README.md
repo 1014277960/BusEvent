@@ -6,15 +6,15 @@ EventBus地址：https://github.com/greenrobot/EventBus
 `BusEvent.getInstance().register(this);
 `
  2. 定义事件类型  
-`class EventType {
-	// define
-}
+`class EventType {  
+	// define  
+}  
 `
  3. 定义订阅者  
-`@Subscribe(threadMode = ThreadMode.ASYNC)
-public void test(EventType event) {
-    // handle the event
-}
+`@Subscribe(threadMode = ThreadMode.ASYNC)  
+public void test(EventType event) {  
+    // handle the event  
+}  
 `
  4. 发布事件  
 `BusEvent.getInstance().post(new EventType());
