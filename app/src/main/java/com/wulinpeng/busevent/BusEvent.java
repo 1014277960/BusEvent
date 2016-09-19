@@ -4,32 +4,32 @@ import android.os.AsyncTask;
 import android.os.Handler;
 import android.os.Looper;
 import android.util.Log;
-import android.widget.EditText;
 
 import java.lang.annotation.Annotation;
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.concurrent.CopyOnWriteArrayList;
 
-/**
- * Created by wulinpeng on 16/9/19.
- */
 public class BusEvent {
 
+    /**
+     * 用于切换到主线程调用方法
+     */
     private Handler mHandler;
 
     private static BusEvent instance;
 
+    /**
+     * Event类型参数作为key，保存对应的所有SubscribeMethod
+     */
     private Map<Class, CopyOnWriteArrayList<SubscribeMethod>> methodsByType = new HashMap<>();
 
+    /**
+     * 每个线程对应
+     */
     private ThreadLocal<PostingThread> mPostingThread = new ThreadLocal<PostingThread>() {
         @Override
         public PostingThread get() {
@@ -57,6 +57,9 @@ public class BusEvent {
         return instance;
     }
 
+    /**
+     * 遍历所有方法，找出有Subsceibe注解的方法，保存
+     */
     public void register(Object subscriber) {
         Class c = subscriber.getClass();
         Method[] methods = c.getDeclaredMethods();
@@ -71,6 +74,12 @@ public class BusEvent {
         }
     }
 
+    /**
+     * 只保存参数为1个的方法，通过注解获得执行线程
+     * @param method
+     * @param a
+     * @param subscriber
+     */
     private void addMethod(Method method, Subscribe a, Object subscriber) {
         Class<?>[] types = method.getParameterTypes();
         if (types.length == 1) {
@@ -89,6 +98,10 @@ public class BusEvent {
         }
     }
 
+    /**
+     * 遍历所有方法，删除有Subscribe注解的方法
+     * @param subscriber
+     */
     public void unRegister(Object subscriber) {
         Class c = subscriber.getClass();
         Method[] methods = c.getDeclaredMethods();
@@ -103,6 +116,11 @@ public class BusEvent {
         }
     }
 
+    /**
+     * 通过方法的参数得到所有该参数的SubscribeMethod，然后比较Subscriber，对应的删除
+     * @param method
+     * @param subscriber
+     */
     private void removeMethod(Method method, Object subscriber) {
         Class<?>[] types = method.getParameterTypes();
         if (types.length == 1) {
@@ -121,17 +139,24 @@ public class BusEvent {
         }
     }
 
+    /**
+     * 发送事件
+     * @param event
+     */
     public void post(Object event) {
+        // 得到本线程对应的PostingThread，将事件加入queue，然后判断本线程的状态，如果isPosting就返回
         PostingThread p = mPostingThread.get();
         p.eventQueue.add(event);
         if (p.isPosting) {
             return;
         }
+        // 开始调用方法，通过postEvent
         p.isPosting = true;
         while (!p.eventQueue.isEmpty()) {
             Object e = p.eventQueue.remove(0);
             postEvent(e);
         }
+        // 队列为空，调用完毕，设为false
         p.isPosting = false;
     }
 
