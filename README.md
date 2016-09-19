@@ -3,19 +3,23 @@
 EventBus地址：https://github.com/greenrobot/EventBus  
 ##使用方法
  1. 在onCreate方法中注册  
-`BusEvent.getInstance().register(this);
-`
+```
+BusEvent.getInstance().register(this);
+```
  2. 定义事件类型  
-`class EventType {  
+```
+class EventType {  
 	// define  
 }  
-`
+```
  3. 定义订阅者  
-`@Subscribe(threadMode = ThreadMode.ASYNC)  
+```
+@Subscribe(threadMode = ThreadMode.ASYNC)  
 public void test(EventType event) {  
     // handle the event  
 }  
-`
+```
  4. 发布事件  
-`BusEvent.getInstance().post(new EventType());
-`
+```
+BusEvent.getInstance().post(new EventType());
+```
